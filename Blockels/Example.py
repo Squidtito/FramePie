@@ -1,133 +1,92 @@
+#This is a kinda bad example for optimization whoops ¯\_(ツ)_/¯
+#Still looks cool tho lol
+
 import framepie as fp
-#import random
+import random
 import pygame
-#import functools
-#import ez_profile
-block = [fp.load_image("Blockels/blocks/grass.png", True),fp.load_image("Blockels/blocks/stone.png", False)]
+block = [fp.load_image("blocks/grass.png", True),fp.load_image("blocks/stone.png", True)]
 x:int=0
 z:int=1
 camera_x:int=0
 camera_y:int=0
 current:int
-block_size=2
-fp.FPS = 60
+block_size=50
+fp.FPS = 6000
+world=[]
 premath=[]
 update = True
 maths:int = 0
-update_rendering =[1] #Array 0 means rendering for the terrain
-
-world=[]
-world_temp=[]
-world_size=10 #How big is the world going to be?
-world_chunk_size = 6 #How big are chunks?
-#sine = [1,2,3,4,5,6,6,5,4,3,2,1] #Testing
-z_axis=0
-x_axis=0
-for _ in range(world_size):
-    #Begin creating chunk
-    for _ in range(world_size):
-        chunk = []
-        for x in range(world_chunk_size): #Creating chunk
-            for z in range(world_chunk_size):
-                chunk.append((x,z,0,0)) #Add block into chunk
-                world_temp.append(0)
-        world.append([x_axis,z_axis,chunk]) #Add chunk to world. alongside where the chunk should be at.
-        x_axis+=1
-    z_axis+=1
-    x_axis=0
-
-
+while not z==100:
+    x=0
+    current=0
+    while not x==100:
+         x+=1
+         rand = random.randint(30,80)
+         world.append((x,z,random.randint(0,1),random.randint(0,1)))
+    z+=1
 print(len(world))
 fp.set_window_background_color((31,31,51))
 fp.set_window_resolution((1280/2,720/2))
 
-def generate_premath(blocksize): #This prevents the game from doing a extra pointless amount of math for the block size/camera every frame
+def generate_premath(blocksize): #This prevents the game from doing a extra pointless amount of math for the block size/camera
         premath.append(0.47*blocksize)
         premath.append(0.45*blocksize)
         premath.append(0.242*blocksize)
         premath.append(0.26*blocksize)
 
 generate_premath(block_size)
+
 while True:
-    fp.update()
     maths = 0
+
     camera_x_old = camera_x
     camera_y_old = camera_y
+
+    speed = fp.to_delta(50)
     if fp.get_input(pygame.K_w):
-        if not block_size == 2:
-            block_size-=.5
+        if not block_size <= 3:
+            block_size-=speed
             premath=[]
             maths+=4
             generate_premath(block_size)
     elif fp.get_input(pygame.K_s):
-        block_size+=.5
+        block_size+=speed
         premath=[]
         maths+=4
         generate_premath(block_size)
 
-    camera_old = (camera_x,camera_y)
-    camera_speed=10
+
+    speed = fp.to_delta(500)
     if fp.get_input(pygame.K_RIGHT):
-        camera_x-=camera_speed
+        camera_x-=speed
     elif fp.get_input(pygame.K_LEFT):
-        camera_x+=camera_speed
+        camera_x+=speed
     if fp.get_input(pygame.K_UP):
-        camera_y-=camera_speed
+        camera_y-=speed
     elif fp.get_input(pygame.K_DOWN):
-        camera_y+=camera_speed
+        camera_y+=speed
+
 
     current=0
     drawn=0
     z=0
 
-    #camera_view =(round(camera_x/block_size*world_chunk_size),round(camera_y/world_chunk_size))
-    #print(camera_view)
-    #loaded_chunks=[]
-    #for zz in range(camera_view[1]):
-    #    for xx in range(camera_view[0]):
-    #        loaded_chunks.append(world[xx+zz][2])
-    #print(loaded_chunks)
-
-    chunk_count:int=0
-    for chunk in world:
-        chunk_count+=1
-        blockX=chunk[0]*world_chunk_size
-        blockZ=chunk[1]*world_chunk_size
-        blockY=0
-
-        meth = (
-                blockX*premath[0]+camera_x-premath[1]*
-                blockZ,
-                blockX*premath[2]+premath[3]*
-                blockZ-camera_y+
-                blockY*premath[1]
-                )
-        maths+=18
-        if meth[0]>=-200 and meth[0]<=800 and meth[1]>=-250 and meth[1]<=450: #Check if chunk is on screen. If so starts processing blocks
-            if world_temp[chunk_count]==0:
-                chunk_surface = pygame.Surface((320, 200))
-                chunk_surface.set_colorkey((0,0,0))
-                for i in chunk[2]:
-                        current+=1
-                        blockX=i[0]+chunk[0]*world_chunk_size
-                        blockZ=i[1]+chunk[1]*world_chunk_size
-                        blockY=i[2]
-
-                        meth = (
-                        blockX*premath[0]+camera_x-premath[1]*
-                        blockZ,
-                        blockX*premath[2]+premath[3]*
-                        blockZ-camera_y+
-                        blockY*premath[1]
-                        )
 
 
-                        fp.draw_image(block[i[3]],meth,(block_size,block_size),surface=chunk_surface)
-                        drawn+=1
-                        maths+=13
-                        world_temp[chunk_count]=chunk_surface
-            chunk_surface =pygame.transform.scale(chunk_surface, (block_size*10,block_size*10))
-            fp.draw_surface(world_temp[chunk_count],meth)
-                
+    fp.update()
+    for i in world:
+            current+=1
+            meth = (
+            i[0]*premath[0]+camera_x-premath[1]*
+            i[1],
+            i[0]*premath[2]+premath[3]*
+            i[1]-camera_y+
+            i[2]*premath[1])
+            
+            if meth[0] >= -15 and meth[0] <= 590 and meth[1] >= -15 and meth[1] <= 330:
+                    fp.draw_image(block[i[3]],meth,(block_size,block_size))
+                    drawn+=1
+            maths+=12
+            
 
     fp.set_window_name(str(drawn)+" drawn blocks, " +str(maths)+" math calculations and operations total."+"   FPS: "+str(round(fp.clock.get_fps())))
