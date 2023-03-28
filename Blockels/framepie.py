@@ -98,7 +98,6 @@ def get_input(input):
     if keys[input]: 
         return True
 
-#SHOULD NOT BE USED, NOT WORKING CORRECTLY
 def to_delta(number):
     return number * dt
 
@@ -116,6 +115,7 @@ def get_mouse_position():
     return pygame.mouse.get_pos()
 
 def get_index(Array:list,index:int):
+
     if index >= Array.__len__() or index <=-1:
         return None
     else:

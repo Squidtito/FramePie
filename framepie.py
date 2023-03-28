@@ -98,7 +98,6 @@ def get_input(input):
     if keys[input]: 
         return True
 
-#SHOULD NOT BE USED, NOT WORKING CORRECTLY
 def to_delta(number):
     return number * dt
 
